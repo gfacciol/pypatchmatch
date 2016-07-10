@@ -4,7 +4,8 @@ cimport numpy as np
 np.import_array()
 
 
-cdef extern from "patchmatch_simple.c":
+#cdef extern from "patchmatch_simple.c":
+cdef extern from "patchmatch_simple.cc":
    void patchmatch(float *u1_, int u1ncol, int u1nrow, int u1nch,
          float *u2_, int u2ncol, int u2nrow, int u2nch, 
          int w, char *method, int minoff,  int maxoff, 
@@ -20,7 +21,7 @@ def pm(np.ndarray[np.float32_t, ndim=3, mode='c'] u1,
        maxoff,
        n_iter=5,
        n_rand=5,
-       method='SAD'): # SAD, SSD, ZSSD, ZSAD
+       method='SAD'): # SAD, SSD, ZSSD, ZSAD, NCC
    '''
    returns the NNF field and the COST
    '''

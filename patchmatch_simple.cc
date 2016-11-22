@@ -319,16 +319,17 @@ void patchmatch(Img &u1, Img &u2, int w, Img &off, Img &cost,int minoff, int max
 }
 
 
+// interface used by python and matlab
 void patchmatch(float *u1_, int nc  , int nr  , int nch, 
                 float *u2_, int u2nc, int u2nr, int u2nch, 
                 int w, char *method, int minoff,  int maxoff, 
                 float *nnf_, float *out_cost_, 
-                int iterations, int randomtrials)
+                int iterations, int randomtrials, bool channels_as_planes)
 {
     // fix interfacing convenction: from vector pixels to color planes
-    Img u1(u1_  ,      nc  ,   nr, nch  , false);
-    Img u2(u2_  ,      u2nc, u2nr, u2nch, false);
-    Img nnf(nnf_,      nc  ,   nr, 2    , false); //to be used later
+    Img u1(u1_  ,      nc  ,   nr, nch  , channels_as_planes);
+    Img u2(u2_  ,      u2nc, u2nr, u2nch, channels_as_planes);
+    Img nnf(nnf_,      nc  ,   nr, 2    , channels_as_planes); //to be used later
     Img cost(nc, nr, 1);
 
     printf("enter %s\n", method);
@@ -344,7 +345,10 @@ void patchmatch(float *u1_, int nc  , int nr  , int nch,
       patchmatch<distance_patch_NCC>(u1, u2, w, nnf, cost, minoff, maxoff, iterations, randomtrials);
 
     // cleanup the interfacing mess I just did (planar to vector)
-    for(int i=0;i<nc*nr;i++) { nnf_[2*i] = nnf[i];  nnf_[2*i+1] = nnf[i+nc*nr];}
+    if (channels_as_planes) 
+      for(int i=0;i<nc*nr*2;i++) { nnf_[i] = nnf[i]; }
+    else
+      for(int i=0;i<nc*nr;i++) { nnf_[2*i] = nnf[i];  nnf_[2*i+1] = nnf[i+nc*nr];}
     for(int i=0;i<nc*nr;i++)   out_cost_[i] = cost[i];
 }
 

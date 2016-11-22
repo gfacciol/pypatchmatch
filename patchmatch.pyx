@@ -1,5 +1,7 @@
 import numpy as np
 cimport numpy as np
+from libcpp cimport bool
+
 
 np.import_array()
 
@@ -10,7 +12,7 @@ cdef extern from "patchmatch_simple.cc":
          float *u2_, int u2ncol, int u2nrow, int u2nch, 
          int w, char *method, int minoff,  int maxoff, 
          float *nnf, float *out_cost_ , 
-         int iterations, int randtrials)
+         int iterations, int randtrials, bool color_planes)
 
 def pm(np.ndarray[np.float32_t, ndim=3, mode='c'] u1,
        np.ndarray[np.float32_t, ndim=3, mode='c'] u2,
@@ -36,7 +38,7 @@ def pm(np.ndarray[np.float32_t, ndim=3, mode='c'] u1,
    patchmatch(<float*>u1.data,w1,h1,c1, <float*>u2.data,w2,h2,c2, 
          patchsz, bytes(method), minoff, maxoff,
          <float*>nnf.data, <float*>cost.data, 
-         n_iter, n_rand)
+         n_iter, n_rand, False)
 
    return nnf, cost
 

@@ -4,6 +4,7 @@ with its Cython wrapper by Gabriele Facciolo (gfacciol@gmail.com)
 PatchMatch is a randomized matching algorithm that allows to efficiently 
 compute correspondece (offset) maps between two images. 
 
+
 build standalone program
 ========================
 > mkdir build; cd build
@@ -71,4 +72,13 @@ usage example
         dx = nnf[:,:,0] 
         dy = nnf[:,:,1] 
 
+
+build matlab mex
+================
+> compileMex
+
+run test
+> a = double(imread('a.png'));
+> b = double(imread('b.png'));
+> [n,c] = patchmatchMex(a,b);
 

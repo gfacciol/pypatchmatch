@@ -121,7 +121,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
           w, method, minoff, maxoff, 
           nnf_, cost_, iterations, randomtrials, true);
 
-    for(int i=0;i<dimy*dimx*2;i++) { nnf[i]=nnf_[i]; }
+    // swap dx and dy in nnf
+    for(int i=0;i<dimy*dimx;i++) { nnf[i]=nnf_[i+dimy*dimx]; nnf[i+dimy*dimx]=nnf_[i];}
     for(int i=0;i<dimy*dimx;i++) { cost[i]=cost_[i]; }
     free(u1_);
     free(u2_);

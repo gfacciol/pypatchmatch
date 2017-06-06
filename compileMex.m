@@ -1,5 +1,5 @@
 % compile
-mex patchmatchMex.cpp patchmatch_simple.cc img.cc -DDONT_USE_MAIN -O
+mex patchmatchMex.cpp patchmatch_simple.cc img.cc -DDONT_USE_MAIN
 % test
 a = double(imread('a.png'));
 b = double(imread('b.png'));

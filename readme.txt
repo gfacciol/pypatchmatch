@@ -1,5 +1,5 @@
 A simple implementation of the PatchMatch Algorithm [Barnes, 2009],
-with its Cython wrapper by Gabriele Facciolo (gfacciol@gmail.com)
+with its Cython and Matlab wrapper by Gabriele Facciolo (gfacciol@gmail.com)
 
 PatchMatch is a randomized matching algorithm that allows to efficiently 
 compute correspondece (offset) maps between two images. 

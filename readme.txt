@@ -11,7 +11,7 @@ build standalone program
 > cmake ../; make
 
 quick test
-> ./patchmatch -t SSD -w 5 ../{a,b}.png -R 300 offs.tif cost.tif backproj.png
+> ./patchmatch -t SSD -i 10 -w 7 ../{b,a}.png -R 26 offs.tif cost.tif backproj.png
 
 usage: ./patchmatch [-i iter(5)] [-w patchsz(7)] [-d init_off]
         [-t patchdist={SSD(default)|SAD|ZSSD|ZSAD|NCC}]

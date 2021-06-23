@@ -2,22 +2,49 @@ A simple implementation of the PatchMatch Algorithm [Barnes, 2009],
 with its Cython and Matlab wrapper by Gabriele Facciolo (gfacciol@gmail.com)
 
 PatchMatch is a randomized matching algorithm that allows to efficiently 
-compute correspondece (offset) maps between two images. 
+compute the correspondence (offset) map between two images. 
 
-
-build standalone program
+Build standalone program
 ========================
 > mkdir build; cd build
 > cmake ../; make
 
 quick test
-> ./patchmatch -t SSD -i 10 -w 7 ../{b,a}.png -R 26 offs.tif cost.tif backproj.png
+> ./patchmatch -t SSD -i 10 -w 7 ../{b,a}.png -R 26 offset.tif cost.tif backproj.png
 
-usage: ./patchmatch [-i iter(5)] [-w patchsz(7)] [-d init_off]
+Usage: ./patchmatch [-i iter(5)] [-w patch_size(7)] [-d init_off]
         [-t patchdist={SSD(default)|SAD|ZSSD|ZSAD|NCC}]
-        [-r min_off(0)] [-R max_off(10)] u v offsets [cost [backflow]]
+        [-r min_off(0)] [-R max_off(10)] u v offset [cost [backflow]]
 
+The offset.tif output image will have two channels with float values,
+for the column and row offset, respectively, from the left to the
+right image.
 
+This algorithm does not compute a subpixel offset or perform a
+left-right consistency check.
+
+Options:
+
+-i iter
+   Number of iterations. A larger offset may need more iterations to
+   converge.
+
+-w patch_size
+    Use a patch (block) of this size around each pixel in the left
+    image to match to the right image.
+
+-t patchdist
+    The distance function to use to measure the similarity between
+    patches in the two images.
+
+-R max_off
+    Search for the offset between -max_off and max_off. The algorithm
+    should not be given a value for this much larger than what is
+    expected, as that may result in incorrect results in some places.
+
+-r min_off
+    Do not search for offsets between -min_off and min_off.
+   
 build cython module
 ===================
 > python setup.py build

@@ -23,7 +23,7 @@ def pm(np.ndarray[np.float32_t, ndim=3, mode='c'] u1,
        maxoff,
        n_iter=5,
        n_rand=5,
-       method='SAD'): # SAD, SSD, ZSSD, ZSAD, NCC
+       method=u'SAD'): # SAD, SSD, ZSSD, ZSAD, NCC
    '''
    returns the NNF field and the COST
    '''
@@ -35,7 +35,7 @@ def pm(np.ndarray[np.float32_t, ndim=3, mode='c'] u1,
    cdef int h2 = u2.shape[0]
    cdef int c2 = u2.shape[2]
 
-   methodstring = bytes(method)
+   methodstring = bytes(method, encoding='utf8')
 
    patchmatch(<float*>u1.data,w1,h1,c1, <float*>u2.data,w2,h2,c2, 
          patchsz, methodstring, minoff, maxoff,

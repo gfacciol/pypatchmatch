@@ -40,7 +40,29 @@ class PatchMatch:
         pylab.imshow(self.img[1],cmap=matplotlib.cm.Greys_r);
         pylab.title("Patch Match")
         pylab.show();
+
+
+    def leftright(offL, offR, maxdiff=1):
+        '''
+        Filters the disparity maps applying the left-right consistency test
+            | offR(round(x - offL(x))) + offR(x)| <= maxdiff
     
+        Args:
+            offL, offR: numpy arrays containing the Left and Right disparity maps
+            maxdiff: threshold for the uniqueness constraint
+    
+        Returns:
+            numpy array containing the offL disparity map,
+            where the rejected pixels are set to np.inf
+        '''
+        sh = offL.shape
+        X, Y = np.meshgrid(range(sh[1]), range(sh[0]))
+        X = np.minimum(np.maximum(X - offL.astype(int), 0), sh[1]-1)
+        m = np.abs(offL + offR[Y,X] ) > maxdiff
+        out = offL.copy()
+        out[m] = np.Infinity
+        return out
+
 
     def match(self,files,patchSize=(5,5),iterations=20,minoff=0,maxoff=50):
         '''
@@ -55,7 +77,7 @@ class PatchMatch:
         import time
         t = time.time()
         pm.pm(self.img[0], self.img[1], self.nff, self.cost, patchSize[0], minoff, maxoff)
-        print time.time() - t
+        print (time.time() - t)
 
         # join nnf and costs 
         self.nff=numpy.dstack([self.nff, self.cost[:,:,numpy.newaxis]])

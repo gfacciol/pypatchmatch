@@ -12,7 +12,7 @@ cdef extern from "patchmatch_simple.cc":
          float *u2_, int u2ncol, int u2nrow, int u2nch, 
          int w, char *method, int minoff,  int maxoff, 
          float *nnf, float *out_cost_ , 
-         int iterations, int randtrials, bool color_planes)
+         int iterations, int randtrials, bool color_planesi, bool use_horizontal_off)
 
 def pm(np.ndarray[np.float32_t, ndim=3, mode='c'] u1,
        np.ndarray[np.float32_t, ndim=3, mode='c'] u2,
@@ -23,7 +23,8 @@ def pm(np.ndarray[np.float32_t, ndim=3, mode='c'] u1,
        maxoff,
        n_iter=5,
        n_rand=5,
-       method=u'SAD'): # SAD, SSD, ZSSD, ZSAD, NCC
+       method=u'SAD',   # SAD, SSD, ZSSD, ZSAD, NCC
+       use_horizontal_off=False): 
    '''
    returns the NNF field and the COST
    '''
@@ -40,7 +41,7 @@ def pm(np.ndarray[np.float32_t, ndim=3, mode='c'] u1,
    patchmatch(<float*>u1.data,w1,h1,c1, <float*>u2.data,w2,h2,c2, 
          patchsz, methodstring, minoff, maxoff,
          <float*>nnf.data, <float*>cost.data, 
-         n_iter, n_rand, False)
+         n_iter, n_rand, False, use_horizontal_off)
 
    return nnf, cost
 

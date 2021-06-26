@@ -30,9 +30,12 @@ class PatchMatch:
         shows times and images
         '''
         if nffs:
-            for i in range(0,3):
-                pylab.imshow(self.nff[:,:,i])
-                pylab.show();
+            pylab.imshow(self.nff[:,:,0])
+            pylab.title('off_x')
+            pylab.show();
+            pylab.imshow(self.nff[:,:,1])
+            pylab.title('off_y')
+            pylab.show();
         f=pylab.figure()
         f.add_subplot(1,2,1);    
         pylab.imshow(self.img[0],cmap=matplotlib.cm.Greys_r);
@@ -64,7 +67,7 @@ class PatchMatch:
         return out
 
 
-    def match(self,files,patchSize=(5,5),iterations=20,minoff=0,maxoff=50):
+    def match(self,files,patchSize=(5,5),iterations=20,minoff=0,maxoff=26):
         '''
         run the patchMatch algorithm on the images, returning nff array
         '''
@@ -76,7 +79,7 @@ class PatchMatch:
 
         import time
         t = time.time()
-        pm.pm(self.img[0], self.img[1], self.nff, self.cost, patchSize[0], minoff, maxoff)
+        pm.pm(self.img[0], self.img[1], self.nff, self.cost, patchSize[0], minoff, maxoff, use_horizontal_off=True)
         print (time.time() - t)
 
         # join nnf and costs 

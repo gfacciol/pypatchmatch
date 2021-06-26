@@ -45,6 +45,10 @@ Options:
 -r min_off
     Do not search for offsets between -min_off and min_off.
    
+-h 
+    Search only horizontal offsets, by default offsets are 2D.   
+
+
 build cython module
 ===================
 > python setup.py build

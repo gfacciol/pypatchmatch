@@ -188,7 +188,7 @@ inline void extract_patch_secure(const Img &u, const float x, const float y, Img
 typedef float(*patch_distance_func)(const Img &, const Img &, const float&); //signature of all patch distance functions
 
 template<patch_distance_func dist>
-void random_search(Img &u1, Img &u2, int w, Img &off, Img &cost, int minoff, int maxoff)
+void random_search(Img &u1, Img &u2, int w, Img &off, Img &cost, int minoff, int maxoff, bool use_horizontal_off)
 {
     int maxtrials = RANDOMTRIALS;
     int thmax = 1; // thread handling data
@@ -213,8 +213,8 @@ void random_search(Img &u1, Img &u2, int w, Img &off, Img &cost, int minoff, int
             extract_patch_secure(u1, x, y, p1[thid]);
             
             for (int trial=0;trial<maxtrials; trial++) {
-                Point off( (int) ( ( ( (double) rand_r(&seeds[thid]) ) / ((double) RAND_MAX + 1.0) ) *2* maxoff) - maxoff,
-                           (int) ( ( ( (double) rand_r(&seeds[thid]) ) / ((double) RAND_MAX + 1.0) ) *2* maxoff) - maxoff);
+                Point off( ((int) ( ( ( (double) rand_r(&seeds[thid]) ) / ((double) RAND_MAX + 1.0) ) *2* maxoff) - maxoff),
+                           ((int) ( ( ( (double) rand_r(&seeds[thid]) ) / ((double) RAND_MAX + 1.0) ) *2* maxoff) - maxoff) * (1-use_horizontal_off) );
                 
                 Point tmp = Point(x,y) + off;
                 // skip points that fell outside the image or offsets smaller than minoff 
@@ -299,7 +299,7 @@ void propagation(Img &u1, Img &u2, int w, Img &off, Img &cost, int minoff, int m
 
 
 template<patch_distance_func dist>
-void patchmatch(Img &u1, Img &u2, int w, Img &off, Img &cost,int minoff, int maxoff,  int iterations, int randomtrials)
+void patchmatch(Img &u1, Img &u2, int w, Img &off, Img &cost,int minoff, int maxoff,  int iterations, int randomtrials, bool use_horizontal_off)
 {
     RANDOMTRIALS=randomtrials;
 
@@ -310,7 +310,7 @@ void patchmatch(Img &u1, Img &u2, int w, Img &off, Img &cost,int minoff, int max
     {
         printf("iteration %d\n",i);
         // random search
-        random_search<dist>(u1, u2, w, off, cost, minoff,maxoff);
+        random_search<dist>(u1, u2, w, off, cost, minoff,maxoff, use_horizontal_off);
         // forward propagation
         propagation<dist>(u1, u2, w, off, cost, minoff,maxoff, 1); 
         // backward propagation
@@ -324,7 +324,8 @@ void patchmatch(float *u1_, int nc  , int nr  , int nch,
                 float *u2_, int u2nc, int u2nr, int u2nch, 
                 int w, char *method, int minoff,  int maxoff, 
                 float *nnf_, float *out_cost_, 
-                int iterations, int randomtrials, bool channels_as_planes)
+                int iterations, int randomtrials, bool channels_as_planes, 
+                bool use_horizontal_off)
 {
     // fix interfacing convenction: from vector pixels to color planes
     Img u1(u1_  ,      nc  ,   nr, nch  , channels_as_planes);
@@ -334,15 +335,15 @@ void patchmatch(float *u1_, int nc  , int nr  , int nch,
 
     printf("enter %s\n", method);
    if (strcmp (method,"SSD")==0)
-      patchmatch<distance_patch_SSD>(u1, u2, w, nnf, cost, minoff, maxoff, iterations, randomtrials);
+      patchmatch<distance_patch_SSD>(u1, u2, w, nnf, cost, minoff, maxoff, iterations, randomtrials, use_horizontal_off);
    else if (strcmp (method,"SAD")==0)
-      patchmatch<distance_patch_SAD>(u1, u2, w, nnf, cost, minoff, maxoff, iterations, randomtrials);
+      patchmatch<distance_patch_SAD>(u1, u2, w, nnf, cost, minoff, maxoff, iterations, randomtrials, use_horizontal_off);
    else if (strcmp (method,"ZSSD")==0)
-      patchmatch<distance_patch_ZSSD>(u1, u2, w, nnf, cost, minoff, maxoff, iterations, randomtrials);
+      patchmatch<distance_patch_ZSSD>(u1, u2, w, nnf, cost, minoff, maxoff, iterations, randomtrials, use_horizontal_off);
    else if (strcmp (method,"ZSAD")==0)
-      patchmatch<distance_patch_ZSAD>(u1, u2, w, nnf, cost, minoff, maxoff, iterations, randomtrials);
+      patchmatch<distance_patch_ZSAD>(u1, u2, w, nnf, cost, minoff, maxoff, iterations, randomtrials, use_horizontal_off);
    else if (strcmp (method,"NCC")==0)
-      patchmatch<distance_patch_NCC>(u1, u2, w, nnf, cost, minoff, maxoff, iterations, randomtrials);
+      patchmatch<distance_patch_NCC>(u1, u2, w, nnf, cost, minoff, maxoff, iterations, randomtrials, use_horizontal_off);
 
     // cleanup the interfacing mess I just did (planar to vector)
     if (channels_as_planes) 
@@ -428,12 +429,14 @@ int main(int argc, char* argv[])
    char* method = pick_option(&argc, &argv, (char*) "t", (char*) "SSD");   //{census|ad|sd|ncc|btad|btsd}
    int iterations = atoi(pick_option(&argc, &argv, (char*) "i", (char*) "5"));
    int w = atoi(pick_option(&argc, &argv, (char*) "w", (char*) "7"));
+   bool use_horizontal_off = pick_option(&argc, &argv, (char*) "h", NULL);
+
 
 	/* patameter parsing - parameters*/
 	if(argc<4)
 	{
 		fprintf (stderr, "too few parameters\n");
-		fprintf (stderr, "   usage: %s  [-i iter(5)] [-w window(7)] [-r min_offset(0)] [-R max_offset(10)] -d [init_disp] u v out [cost [backflow]]\n",argv[0]);
+		fprintf (stderr, "   usage: %s  [-i iter(5)] [-w window(7)] [-r min_offset(0)] [-R max_offset(10)] [-h] [-d init_disp] u v out [cost [backflow]]\n",argv[0]);
 		fprintf (stderr, "        [-t  distance(ad)]: distance = {SSD|SAD|ZSSD|ZSAD|NCC} \n");
 		return 1;
 	}
@@ -466,15 +469,15 @@ int main(int argc, char* argv[])
 
 
    if (strcmp (method,"SSD")==0)
-      patchmatch<distance_patch_SSD>(u, v, w, odisp, ocost,dmin, dmax,  iterations, 5);
+      patchmatch<distance_patch_SSD>(u, v, w, odisp, ocost,dmin, dmax,  iterations, 5, use_horizontal_off);
    else if (strcmp (method,"SAD")==0)
-      patchmatch<distance_patch_SAD>(u, v, w, odisp, ocost,dmin, dmax,  iterations, 5);
+      patchmatch<distance_patch_SAD>(u, v, w, odisp, ocost,dmin, dmax,  iterations, 5, use_horizontal_off);
    else if (strcmp (method,"ZSSD")==0)
-      patchmatch<distance_patch_ZSSD>(u, v, w, odisp, ocost,dmin, dmax,  iterations, 5);
+      patchmatch<distance_patch_ZSSD>(u, v, w, odisp, ocost,dmin, dmax,  iterations, 5, use_horizontal_off);
    else if (strcmp (method,"ZSAD")==0)
-      patchmatch<distance_patch_ZSAD>(u, v, w, odisp, ocost,dmin, dmax,  iterations, 5);
+      patchmatch<distance_patch_ZSAD>(u, v, w, odisp, ocost,dmin, dmax,  iterations, 5, use_horizontal_off);
    else if (strcmp (method,"NCC")==0)
-      patchmatch<distance_patch_NCC>(u, v, w, odisp, ocost,dmin, dmax,  iterations, 5);
+      patchmatch<distance_patch_NCC>(u, v, w, odisp, ocost,dmin, dmax,  iterations, 5, use_horizontal_off);
 
 	// save the disparity
 	
